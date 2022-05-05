@@ -1,0 +1,4 @@
+rootProject.name = 'aeplugin-centralheating'
+
+includeBuild "../automate-everything"
+includeBuild "../aeplugin-sensorsandcontrollers"
