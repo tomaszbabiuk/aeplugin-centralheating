@@ -26,7 +26,7 @@ import eu.automateeverything.domain.automation.SensorAutomationUnit
 import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.configurable.Duration
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
 import eu.automateeverything.domain.hardware.Temperature
 import java.math.BigDecimal
@@ -37,13 +37,13 @@ class CirculationPumpAutomationUnit(
     instance: InstanceDto,
     name: String,
     states: Map<String, State>,
-    private val pumpPort: OutputPort<Relay>,
+    private val pumpPort: Port<Relay>,
     minWorkingTime: Duration,
     private val thermometerId: Long
 ) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
 
     private lateinit var thermometerUnit: SensorAutomationUnit<Temperature>
-    override val usedPortsIds = arrayOf(pumpPort.id)
+    override val usedPortsIds = arrayOf(pumpPort.portId)
 
     override val recalculateOnTimeChange = true
     override val recalculateOnPortUpdate = false
@@ -53,8 +53,7 @@ class CirculationPumpAutomationUnit(
     private var lastTemperatureCheck: Long = 0
     private var lastTemperatureMeasured: Temperature? = null
 
-    override fun applyNewState(state: String) {
-    }
+    override fun applyNewState(state: String) {}
 
     private var lastSwitchingOnTime: Calendar? = null
 
@@ -62,10 +61,11 @@ class CirculationPumpAutomationUnit(
         return pumpPort.read().value == BigDecimal.ONE
     }
 
-    private val minWorkingTimeCounter = MinimumWorkingTimeCounter(
-        pumpPort.read().value == BigDecimal.ONE,
-        minWorkingTime.milliseconds
-    )
+    private val minWorkingTimeCounter =
+        MinimumWorkingTimeCounter(
+            pumpPort.read().value == BigDecimal.ONE,
+            minWorkingTime.milliseconds
+        )
 
     override fun calculateInternal(now: Calendar) {
         if (thermometerUnit.lastEvaluation.value == null) {
@@ -86,7 +86,8 @@ class CirculationPumpAutomationUnit(
                 if (nowMillis - lastTemperatureCheck > temperatureCheckInterval) {
                     lastTemperatureCheck = nowMillis
                     val currentTemperature = thermometerUnit.lastEvaluation.value
-                    val temperatureDelta = currentTemperature!!.value.subtract(lastTemperatureMeasured!!.value)
+                    val temperatureDelta =
+                        currentTemperature!!.value.subtract(lastTemperatureMeasured!!.value)
                     val keepPumping = temperatureDelta > BigDecimal.ONE
                     if (keepPumping) {
                         if (!isOn()) {
@@ -118,6 +119,7 @@ class CirculationPumpAutomationUnit(
 
     @Suppress("UNCHECKED_CAST")
     override fun bind(automationUnitsCache: HashMap<Long, Pair<InstanceDto, AutomationUnit<*>>>) {
-        thermometerUnit = automationUnitsCache[thermometerId]!!.second as SensorAutomationUnit<Temperature>
+        thermometerUnit =
+            automationUnitsCache[thermometerId]!!.second as SensorAutomationUnit<Temperature>
     }
 }

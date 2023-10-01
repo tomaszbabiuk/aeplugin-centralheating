@@ -25,7 +25,7 @@ import eu.automateeverything.data.instances.InstanceDto
 import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.configurable.Duration
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
 import java.math.BigDecimal
 import java.util.*
@@ -36,15 +36,16 @@ class ThermalActuatorAutomationUnit(
     instance: InstanceDto,
     name: String,
     states: Map<String, State>,
-    private val actuatorPort: OutputPort<Relay>,
+    private val actuatorPort: Port<Relay>,
     private val activationTime: Duration,
     private val inactiveState: InactiveState,
-    ) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
+) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
 
-    private var openingLevel: Long = if (inactiveState == InactiveState.NO) activationTime.milliseconds else 0
+    private var openingLevel: Long =
+        if (inactiveState == InactiveState.NO) activationTime.milliseconds else 0
 
     private var counter: Long = Calendar.getInstance().timeInMillis
-    override val usedPortsIds = arrayOf(actuatorPort.id)
+    override val usedPortsIds = arrayOf(actuatorPort.portId)
 
     fun isActive() = currentState.id == STATE_ENABLED
 
@@ -55,32 +56,31 @@ class ThermalActuatorAutomationUnit(
         changeState(STATE_DISABLED)
     }
 
-    override fun applyNewState(state: String) {
-    }
+    override fun applyNewState(state: String) {}
 
     override fun calculateInternal(now: Calendar) {
         val ticksDelta: Long = now.timeInMillis - counter
         counter = now.timeInMillis
         if (actuatorPort.read().value == BigDecimal.ONE) {
             if (inactiveState == InactiveState.NO) {
-                //slowly close NO actuator when powered
+                // slowly close NO actuator when powered
                 if (openingLevel > 0) {
                     openingLevel -= ticksDelta
                 }
             } else {
-                //slowly open NC actuator when powered
+                // slowly open NC actuator when powered
                 if (openingLevel < activationTime.milliseconds) {
                     openingLevel += ticksDelta
                 }
             }
         } else {
             if (inactiveState == InactiveState.NO) {
-                //slowly open NO actuator when powered
+                // slowly open NO actuator when powered
                 if (openingLevel < activationTime.milliseconds) {
                     openingLevel += ticksDelta
                 }
             } else {
-                //slowly close NC actuator when powered
+                // slowly close NC actuator when powered
                 if (openingLevel > 0) {
                     openingLevel -= ticksDelta
                 }
@@ -95,7 +95,8 @@ class ThermalActuatorAutomationUnit(
     }
 
     fun calculateValveLevel(): Int {
-        val valveOpening = (openingLevel.toDouble() / activationTime.milliseconds * 100).roundToInt()
+        val valveOpening =
+            (openingLevel.toDouble() / activationTime.milliseconds * 100).roundToInt()
         modifyNote(NOTE_VALVE_OPENING, R.note_opening_level(valveOpening))
         return valveOpening
     }

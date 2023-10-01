@@ -15,7 +15,6 @@
 
 package eu.automateeverything.centralheatingplugin
 
-
 import eu.automateeverything.data.automation.State
 import eu.automateeverything.data.configurables.ControlType
 import eu.automateeverything.data.instances.InstanceDto
@@ -23,7 +22,7 @@ import eu.automateeverything.domain.automation.AutomationUnit
 import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.configurable.StateDeviceConfigurable
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
 import java.util.*
 
@@ -32,18 +31,17 @@ class CentralHeatingPumpAutomationUnit(
     instance: InstanceDto,
     name: String,
     states: Map<String, State>,
-    private val pumpPort: OutputPort<Relay>?,
-    private val transformerPort: OutputPort<Relay>?,
+    private val pumpPort: Port<Relay>?,
+    private val transformerPort: Port<Relay>?,
     private val thermalActuatorIds: List<Long>,
 ) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
 
-    override fun applyNewState(state: String) {
-    }
+    override fun applyNewState(state: String) {}
 
     private lateinit var actuatorUnits: List<ThermalActuatorAutomationUnit>
 
     override val usedPortsIds: Array<String>
-        get() = listOfNotNull(pumpPort?.id, transformerPort?.id).toTypedArray()
+        get() = listOfNotNull(pumpPort?.portId, transformerPort?.portId).toTypedArray()
 
     override val recalculateOnTimeChange = true
     override val recalculateOnPortUpdate = true
@@ -55,7 +53,7 @@ class CentralHeatingPumpAutomationUnit(
         var isEveryInactiveLineClosed = true
         var actuatorsNeedPower = false
 
-        //check if any line is enabled/active
+        // check if any line is enabled/active
         for (actuator in actuatorUnits) {
             val openingLevel: Int = actuator.calculateValveLevel()
             if (actuator.isActive()) {
@@ -71,10 +69,10 @@ class CentralHeatingPumpAutomationUnit(
         }
 
         if (!isAnyLineActive) {
-            //disable relays if there's no active lines
+            // disable relays if there's no active lines
             actuatorUnits.forEach { it.disableRelay() }
         } else {
-            //control relays
+            // control relays
             actuatorUnits.forEach {
                 if (it.needsARelay()) {
                     actuatorsNeedPower = true
@@ -85,7 +83,8 @@ class CentralHeatingPumpAutomationUnit(
             }
         }
 
-        val enablePump = heatingEnabled && isAnyLineActive && isAnyActiveLineOpened && isEveryInactiveLineClosed
+        val enablePump =
+            heatingEnabled && isAnyLineActive && isAnyActiveLineOpened && isEveryInactiveLineClosed
         val needsRegulation = heatingEnabled && (isAnyLineActive || actuatorsNeedPower)
         val enableTransformer = heatingEnabled && actuatorsNeedPower
         if (needsRegulation && !enablePump) {
@@ -108,6 +107,9 @@ class CentralHeatingPumpAutomationUnit(
     }
 
     override fun bind(automationUnitsCache: HashMap<Long, Pair<InstanceDto, AutomationUnit<*>>>) {
-        actuatorUnits = thermalActuatorIds.map { automationUnitsCache[it]!!.second as ThermalActuatorAutomationUnit }
+        actuatorUnits =
+            thermalActuatorIds.map {
+                automationUnitsCache[it]!!.second as ThermalActuatorAutomationUnit
+            }
     }
 }
