@@ -48,42 +48,45 @@ class CentralHeatingPumpConfigurable(
 
     override val fieldDefinitions: Map<String, FieldDefinition<*>>
         get() {
-            val result: MutableMap<String, FieldDefinition<*>> = LinkedHashMap(super.fieldDefinitions)
+            val result: MutableMap<String, FieldDefinition<*>> =
+                LinkedHashMap(super.fieldDefinitions)
             result[FIELD_TRANSFORMER_PORT] = transformerPortField
             result[FIELD_PUMP_PORT] = pumpPortField
             result[FIELD_THERMAL_ACTUATORS] = thermalActuatorIdsField
             return result
         }
 
-    private val thermalActuatorIdsField = InstanceReferenceField(
-        FIELD_THERMAL_ACTUATORS, R.field_thermal_actuators_hint,
-        InstanceReference(ThermalActuatorConfigurable::class.java, InstanceReferenceType.Multiple),
-        RequiredStringValidator()
-    )
+    private val thermalActuatorIdsField =
+        InstanceReferenceField(
+            FIELD_THERMAL_ACTUATORS,
+            R.field_thermal_actuators_hint,
+            InstanceReference(
+                ThermalActuatorConfigurable::class.java,
+                InstanceReferenceType.Multiple
+            ),
+            RequiredStringValidator()
+        )
 
     private val pumpPortField = RelayOutputPortField(FIELD_PUMP_PORT, R.field_pump_port_hint)
 
-    private val transformerPortField = RelayOutputPortField(FIELD_TRANSFORMER_PORT, R.field_transformer_port_hint)
+    private val transformerPortField =
+        RelayOutputPortField(FIELD_TRANSFORMER_PORT, R.field_transformer_port_hint)
 
     override val states: Map<String, State>
         get() {
             val states: MutableMap<String, State> = HashMap()
-            states[STATE_UNKNOWN] = State.buildReadOnlyState(
-                STATE_UNKNOWN,
-                R.state_unknown,
-            )
-            states[STATE_PUMPING] = State.buildReadOnlyState(
-                STATE_PUMPING,
-                R.state_pumping
-            )
-            states[STATE_REGULATION] = State.buildReadOnlyState(
-                STATE_REGULATION,
-                R.state_regulation,
-            )
-            states[STATE_STANDBY] = State.buildReadOnlyState(
-                STATE_STANDBY,
-                R.state_standby
-            )
+            states[STATE_INIT] =
+                State.buildReadOnlyState(
+                    STATE_INIT,
+                    R.state_unknown,
+                )
+            states[STATE_PUMPING] = State.buildReadOnlyState(STATE_PUMPING, R.state_pumping)
+            states[STATE_REGULATION] =
+                State.buildReadOnlyState(
+                    STATE_REGULATION,
+                    R.state_regulation,
+                )
+            states[STATE_STANDBY] = State.buildReadOnlyState(STATE_STANDBY, R.state_standby)
             return states
         }
 
@@ -108,12 +111,20 @@ class CentralHeatingPumpConfigurable(
         val thermalActuatorIdsRaw = extractFieldValue(instance, thermalActuatorIdsField)
         val thermalActuatorIds = thermalActuatorIdsRaw.split(",").map { it.toLong() }
 
-        return CentralHeatingPumpAutomationUnit(eventBus, instance, name, states, pumpPort,
-            transformerPort, thermalActuatorIds)
+        return CentralHeatingPumpAutomationUnit(
+            eventBus,
+            instance,
+            name,
+            states,
+            pumpPort,
+            transformerPort,
+            thermalActuatorIds
+        )
     }
 
     override val iconRaw: String
-        get() = """
+        get() =
+            """
             <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
              <g class="layer">
               <title>Layer 1</title>
@@ -137,7 +148,8 @@ class CentralHeatingPumpConfigurable(
               </g>
              </g>
             </svg>
-        """.trimIndent()
+        """
+                .trimIndent()
 
     companion object {
         const val FIELD_PUMP_PORT = "pumpPortId"

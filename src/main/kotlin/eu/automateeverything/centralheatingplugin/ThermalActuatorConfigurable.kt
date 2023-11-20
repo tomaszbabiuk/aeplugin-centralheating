@@ -47,39 +47,44 @@ class ThermalActuatorConfigurable(
 
     override val fieldDefinitions: Map<String, FieldDefinition<*>>
         get() {
-            val result: MutableMap<String, FieldDefinition<*>> = LinkedHashMap(super.fieldDefinitions)
+            val result: MutableMap<String, FieldDefinition<*>> =
+                LinkedHashMap(super.fieldDefinitions)
             result[FIELD_ACTUATOR_PORT] = actuatorPortField
             result[FIELD_OPENING_TIME] = openingTimeField
             result[FIELD_INACTIVE_STATE] = inactiveStateField
             return result
         }
 
-    private val openingTimeField = DurationField(FIELD_OPENING_TIME, R.field_opening_time_hint,
-        Duration(120)
-    )
+    private val openingTimeField =
+        DurationField(FIELD_OPENING_TIME, R.field_opening_time_hint, Duration(120))
 
-    private val actuatorPortField = RelayOutputPortField(FIELD_ACTUATOR_PORT, R.field_actuator_port_hint, RequiredStringValidator())
+    private val actuatorPortField =
+        RelayOutputPortField(
+            FIELD_ACTUATOR_PORT,
+            R.field_actuator_port_hint,
+            RequiredStringValidator()
+        )
 
-    private val inactiveStateField = ContactTypeField(FIELD_INACTIVE_STATE, R.field_inactive_state_hint)
+    private val inactiveStateField =
+        ContactTypeField(FIELD_INACTIVE_STATE, R.field_inactive_state_hint)
 
     override val states: Map<String, State>
         get() {
             val states: MutableMap<String, State> = HashMap()
-            states[STATE_UNKNOWN] = State.buildReadOnlyState(
-                STATE_UNKNOWN,
-                R.state_unknown,
-            )
-            states[STATE_ENABLED] = State.buildControlState(
-                STATE_ENABLED,
-                R.state_enabled,
-                R.action_enable,
-                isSignaled = true
-            )
-            states[STATE_DISABLED] = State.buildControlState(
-                STATE_DISABLED,
-                R.state_disabled,
-                R.action_disable
-            )
+            states[STATE_INIT] =
+                State.buildReadOnlyState(
+                    STATE_INIT,
+                    R.state_unknown,
+                )
+            states[STATE_ENABLED] =
+                State.buildControlState(
+                    STATE_ENABLED,
+                    R.state_enabled,
+                    R.action_enable,
+                    isSignaled = true
+                )
+            states[STATE_DISABLED] =
+                State.buildControlState(STATE_DISABLED, R.state_disabled, R.action_disable)
             return states
         }
 
@@ -90,11 +95,20 @@ class ThermalActuatorConfigurable(
         val actuatorPort = portFinder.searchForOutputPort(Relay::class.java, actuatorPortRaw)
         val inactiveState = extractFieldValue(instance, inactiveStateField)
 
-        return ThermalActuatorAutomationUnit(eventBus, instance, name, states, actuatorPort, activationTime, inactiveState)
+        return ThermalActuatorAutomationUnit(
+            eventBus,
+            instance,
+            name,
+            states,
+            actuatorPort,
+            activationTime,
+            inactiveState
+        )
     }
 
     override val iconRaw: String
-        get() = """
+        get() =
+            """
             <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
              <g class="layer">
               <title>valve by Ben Davis from the Noun Project</title>
@@ -103,7 +117,8 @@ class ThermalActuatorConfigurable(
               <path d="m86.75432,52.63038l-7.60434,0c-0.69706,0 -1.26739,0.59184 -1.26739,1.31519l0,1.31519l-10.13912,0l0,-9.20633c0,-0.72335 -0.57033,-1.31519 -1.26739,-1.31519l-5.06956,0l0,-3.94557l7.60434,0c0.69706,0 1.26739,-0.59184 1.26739,-1.31519l0,-21.04303c0,-0.72335 -0.57033,-1.31519 -1.26739,-1.31519l-1.26739,0l0,-2.63038c0,-0.72335 -0.57033,-1.31519 -1.26739,-1.31519l-30.41736,0c-0.69706,0 -1.26739,0.59184 -1.26739,1.31519l0,2.63038l-1.26739,0c-0.69706,0 -1.26739,0.59184 -1.26739,1.31519l0,21.04303c0,0.72335 0.57033,1.31519 1.26739,1.31519l7.60434,0l0,3.94557l-5.06956,0c-0.69706,0 -1.26739,0.59184 -1.26739,1.31519l0,9.20633l-12.6739,0l0,-1.31519c0,-0.72335 -0.57033,-1.31519 -1.26739,-1.31519l-7.60434,0c-0.69706,0 -1.26739,0.59184 -1.26739,1.31519l0,31.56456c0,0.72335 0.57033,1.31519 1.26739,1.31519l7.60434,0c0.69706,0 1.26739,-0.59184 1.26739,-1.31519l0,-1.31519l55.76515,0l0,1.31519c0,0.72335 0.57033,1.31519 1.26739,1.31519l7.60434,0c0.69706,0 1.26739,-0.59184 1.26739,-1.31519l0,-31.56456c0,-0.72335 -0.57033,-1.31519 -1.26739,-1.31519l0.00001,0zm-1.26739,15.78228l-5.06956,0l0,-5.26076l5.06956,0l0,5.26076zm-5.06956,2.63038l5.06956,0l0,5.26076l-5.06956,0l0,-5.26076zm0,-15.78228l5.06956,0l0,5.26076l-5.06956,0l0,-5.26076zm-25.3478,-17.09747l0,-18.41266l2.53478,0l0,18.41266l-2.53478,0zm-5.06956,0l0,-18.41266l2.53478,0l0,18.41266l-2.53478,0zm-5.06956,0l0,-18.41266l2.53478,0l0,18.41266l-2.53478,0zm-5.06956,0l0,-18.41266l2.53478,0l0,18.41266l-2.53478,0zm20.27824,-18.41266l2.53478,0l0,18.41266l-2.53478,0l0,-18.41266zm7.60434,18.41266l-2.53478,0l0,-18.41266l2.53478,0l0,18.41266zm-30.41736,-22.35823l27.88258,0l0,1.31519l-27.88258,0l0,-1.31519zm-2.53478,3.94557l2.53478,0l0,18.41266l-2.53478,0l0,-18.41266zm8.87173,21.04303l15.20868,0l0,3.94557l-15.20868,0l0,-3.94557zm-24.08041,27.61899l-5.06956,0l0,-5.26076l5.06956,0l0,5.26076zm-5.06956,2.63038l5.06956,0l0,5.26076l-5.06956,0l0,-5.26076zm0,-15.78228l5.06956,0l0,5.26076l-5.06956,0l0,-5.26076zm5.06956,28.93417l-5.06956,0l0,-5.26076l5.06956,0l0,5.26076zm2.53478,-2.63038l0,-23.67342l13.94129,0c0.69706,0 1.26739,-0.59184 1.26739,-1.31519l0,-9.20633l27.88258,0l0,9.20633c0,0.72335 0.57033,1.31519 1.26739,1.31519l11.40651,0l0,23.67342l-55.76515,0l-0.00001,0zm63.36949,2.63038l-5.06956,0l0,-5.26076l5.06956,0l0,5.26076z" fill="black" id="svg_5"/>
              </g>
             </svg>
-        """.trimIndent()
+        """
+                .trimIndent()
 
     companion object {
         const val FIELD_ACTUATOR_PORT = "actuatorPortId"

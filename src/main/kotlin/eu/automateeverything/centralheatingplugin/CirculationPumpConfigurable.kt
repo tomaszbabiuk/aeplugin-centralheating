@@ -50,47 +50,44 @@ class CirculationPumpConfigurable(
 
     override val fieldDefinitions: Map<String, FieldDefinition<*>>
         get() {
-            val result: MutableMap<String, FieldDefinition<*>> = LinkedHashMap(super.fieldDefinitions)
+            val result: MutableMap<String, FieldDefinition<*>> =
+                LinkedHashMap(super.fieldDefinitions)
             result[FIELD_PUMP_PORT] = pumpPortField
             result[FIELD_MIN_WORKING_TIME] = minWorkingTimeField
             result[FIELD_THERMOMETER_ID] = thermometerIdField
             return result
         }
 
-    private val pumpPortField = RelayOutputPortField(ThermalActuatorConfigurable.FIELD_ACTUATOR_PORT, R.field_pump_port_hint, RequiredStringValidator())
+    private val pumpPortField =
+        RelayOutputPortField(
+            ThermalActuatorConfigurable.FIELD_ACTUATOR_PORT,
+            R.field_pump_port_hint,
+            RequiredStringValidator()
+        )
 
-    private val thermometerIdField = InstanceReferenceField(
-        FIELD_THERMOMETER_ID, R.field_thermometer_hint,
-        InstanceReference(ThermometerConfigurable::class.java, InstanceReferenceType.Single),
-        RequiredStringValidator()
-    )
+    private val thermometerIdField =
+        InstanceReferenceField(
+            FIELD_THERMOMETER_ID,
+            R.field_thermometer_hint,
+            InstanceReference(ThermometerConfigurable::class.java, InstanceReferenceType.Single),
+            RequiredStringValidator()
+        )
 
-    private val minWorkingTimeField = DurationField(
-        FIELD_MIN_WORKING_TIME, R.field_minimum_working_time_hint,
-        Duration(10)
-    )
+    private val minWorkingTimeField =
+        DurationField(FIELD_MIN_WORKING_TIME, R.field_minimum_working_time_hint, Duration(10))
 
     override val states: Map<String, State>
         get() {
             val states: MutableMap<String, State> = HashMap()
-            states[STATE_UNKNOWN] = State.buildReadOnlyState(
-                STATE_UNKNOWN,
-                R.state_unknown,
-            )
-            states[STATE_PUMPING] = State.buildReadOnlyState(
-                STATE_PUMPING,
-                R.state_pumping
-            )
-            states[STATE_STANDBY] = State.buildControlState(
-                STATE_STANDBY,
-                R.state_standby,
-                R.action_standby
-            )
-            states[STATE_OFF] = State.buildControlState(
-                STATE_OFF,
-                R.state_off,
-                R.action_off
-            )
+            states[STATE_INIT] =
+                State.buildReadOnlyState(
+                    STATE_INIT,
+                    R.state_unknown,
+                )
+            states[STATE_PUMPING] = State.buildReadOnlyState(STATE_PUMPING, R.state_pumping)
+            states[STATE_STANDBY] =
+                State.buildControlState(STATE_STANDBY, R.state_standby, R.action_standby)
+            states[STATE_OFF] = State.buildControlState(STATE_OFF, R.state_off, R.action_off)
             return states
         }
 
@@ -101,12 +98,20 @@ class CirculationPumpConfigurable(
         val pumpPort = portFinder.searchForOutputPort(Relay::class.java, pumpPortRaw)
         val thermometerId = extractFieldValue(instance, thermometerIdField)
 
-        return CirculationPumpAutomationUnit(eventBus, instance, name, states, pumpPort,
-            minWorkingTime, thermometerId.toLong())
+        return CirculationPumpAutomationUnit(
+            eventBus,
+            instance,
+            name,
+            states,
+            pumpPort,
+            minWorkingTime,
+            thermometerId.toLong()
+        )
     }
 
     override val iconRaw: String
-        get() = """
+        get() =
+            """
             <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
              <g class="layer">
               <title>Layer 1</title>
@@ -115,7 +120,8 @@ class CirculationPumpConfigurable(
               </g>
              </g>
             </svg>
-        """.trimIndent()
+        """
+                .trimIndent()
 
     companion object {
         const val FIELD_PUMP_PORT = "pumpPortId"

@@ -47,7 +47,7 @@ class CentralHeatingPumpAutomationUnit(
     override val recalculateOnPortUpdate = true
 
     override fun calculateInternal(now: Calendar) {
-        val heatingEnabled: Boolean = currentState.id != StateDeviceConfigurable.STATE_UNKNOWN
+        val heatingEnabled: Boolean = currentState.id != StateDeviceConfigurable.STATE_INIT
         var isAnyLineActive = false
         var isAnyActiveLineOpened = false
         var isEveryInactiveLineClosed = true
